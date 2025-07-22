@@ -31,7 +31,7 @@ export const DeleteTableItemsButton = ({
           />
         )
       } else {
-        setNotification(<p>no-data-created</p>)
+        setNotification(<p>Noch keine Todos vorhanden</p>)
       }
     }}
   >

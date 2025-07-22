@@ -58,7 +58,11 @@ export const Table = ({
           >
             .
           </div>
-          <div>{totalNumberOfItems ? "no-data-found" : "no-data-created"}</div>
+          <div>
+            {totalNumberOfItems
+              ? "Keine übereinstimmenden Todos gefunden"
+              : "Noch keine Todos vorhanden"}
+          </div>
         </td>
       </tr>
     )

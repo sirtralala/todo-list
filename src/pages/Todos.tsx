@@ -7,7 +7,11 @@ import { JSX, useEffect, useState } from "react"
 import { DeleteTableItemsButton } from "../components/buttons/DeleteTableItemsButton"
 import { AddItemRow } from "../components/table/AddItemRow"
 import { TableRow } from "../components/table/TableRow"
-import { isInputValid, notificationClassName } from "../utilities"
+import {
+  enquiryContainerClassName,
+  isInputValid,
+  notificationClassName,
+} from "../utilities"
 import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker"
 import { de } from "date-fns/locale/de"
 import "react-datepicker/dist/react-datepicker.css"
@@ -367,16 +371,18 @@ export const Todos = () => {
 
   const renderNotification = () =>
     notification ? (
-      <div className='w-1/4 mt-14 pl-4'>
+      <div className={enquiryContainerClassName}>
         <div className={notificationClassName}>{notification}</div>
       </div>
     ) : null
 
   const renderUserEnquiry = () =>
-    userEnquiry ? <div className='w-1/4 mt-14 pl-4'>{userEnquiry}</div> : null
+    userEnquiry ? (
+      <div className={enquiryContainerClassName}>{userEnquiry}</div>
+    ) : null
 
   const renderTableArea = () => (
-    <div className='w-full flex'>
+    <div className='w-full flex flex-col-reverse lg:flex-row'>
       <div className={`${maxWidth} grow`}>
         <div className='pt-4 px-4 pb-2 rounded-md shadow'>
           <div className='flex justify-between'>
