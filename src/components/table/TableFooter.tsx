@@ -85,7 +85,7 @@ export const TableFooter = ({
           className='p-1 mt-3 mr-6 text-right text-sm font-semibold text-black'
         >
           <p>{`${displayedItems.length} / ${totalNumberOfItems} Todo${
-            totalNumberOfItems > 1 ? "s" : ""
+            totalNumberOfItems !== 1 ? "s" : ""
           }`}</p>
         </td>
       </tr>

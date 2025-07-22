@@ -13,6 +13,9 @@ export const trClassName = "h-16 align-top border-b-2 border-gray-100"
 
 export const tdClassName = "px-4 pt-3 text-left"
 
+export const enquiryContainerClassName =
+  "w-fit mx-auto lg:w-1/4 lg:mt-14 lg:mx-0 lg:pl-4"
+
 export const getDayClassName = (date: Date, currentDate: Date | null) =>
   currentDate && date.toDateString() === currentDate!.toDateString()
     ? "selected_day"
