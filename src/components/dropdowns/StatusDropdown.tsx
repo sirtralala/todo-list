@@ -110,7 +110,7 @@ export const StatusDropdown = ({
             <input
               type='text'
               name='table-cell-add'
-              className={`w-full py-0 pl-1 pr-7 border border-gray-500 rounded-md focus:border-white`}
+              className='w-full py-0 pl-1 pr-7 border border-gray-500 rounded-md focus:border-white'
               value={status}
               onChange={(e) => {
                 setStatus!(e.target.value as Status)

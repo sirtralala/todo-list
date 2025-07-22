@@ -278,7 +278,7 @@ export const Todos = () => {
 
   const addItemRow = (
     <AddItemRow
-      key='add-item-element'
+      key='add-todo-item'
       items={items}
       title={title}
       setTitle={setTitle}
@@ -383,8 +383,8 @@ export const Todos = () => {
 
   const renderTableArea = () => (
     <div className='w-full flex flex-col-reverse lg:flex-row'>
-      <div className={`${maxWidth} grow`}>
-        <div className='pt-4 px-4 pb-2 rounded-md shadow'>
+      <div className={maxWidth}>
+        <div className='pt-4 px-4 pb-2 rounded-md lg:shadow'>
           <div className='flex justify-between'>
             <TableSearchInput
               placeholder='Todos durchsuchen'
@@ -418,5 +418,5 @@ export const Todos = () => {
     </div>
   )
 
-  return <div className='mr-8'>{renderTableArea()}</div>
+  return <div className='mr-4'>{renderTableArea()}</div>
 }
