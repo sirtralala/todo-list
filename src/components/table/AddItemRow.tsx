@@ -71,7 +71,7 @@ export const AddItemRow = ({
           name='table-cell-add'
           className={`w-full py-0 ${
             isCategoriesInput ? "pl-1 pr-7" : "px-1"
-          } border border-gray-500 rounded-md focus:border-white`}
+          } border border-gray-500 rounded-md outline-none`}
           value={value}
           onChange={(e) => set(e.target.value)}
         />

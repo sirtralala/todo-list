@@ -25,7 +25,7 @@ export const DateFilter = ({
     useState<boolean>(false)
 
   return (
-    <div className='h-8 flex justify-end grow mt-1 mr-6'>
+    <div className='h-8 flex justify-end grow mt-1 mr-1 lg:mr-6'>
       <DatePicker
         selected={startDate}
         onChange={(date) => setStartDate(date)}
