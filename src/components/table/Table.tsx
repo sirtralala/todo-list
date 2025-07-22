@@ -97,13 +97,13 @@ export const Table = ({
           {head.map((item, index) => (
             <th
               key={`th-${item.title}`}
-              className={`${
+              className={`${thClassName} ${item.className} ${
                 index === 0
                   ? "rounded-tl-md"
                   : head.length === index + 1
                   ? "rounded-tr-md"
                   : ""
-              } ${thClassName} ${item.className}`}
+              }`}
             >
               <div className='flex w-full justify-between'>
                 {item.title}
@@ -111,14 +111,14 @@ export const Table = ({
                   <div className='flex items-start'>
                     <button
                       type='button'
-                      title='sort-asc'
+                      title='Aufsteigend sortieren'
                       onClick={() => sortTableData(item.title, "asc")}
                     >
                       <ChevronDownIcon className='h-5 w-5 rotate-180' />
                     </button>
                     <button
                       type='button'
-                      title='sort-desc'
+                      title='Absteigend sortieren'
                       onClick={() => sortTableData(item.title, "desc")}
                     >
                       <ChevronDownIcon className='h-5 w-5' />
@@ -130,10 +130,12 @@ export const Table = ({
           ))}
         </tr>
       </thead>
+
       <tbody className='mb-4'>
         {!!body.length && body}
         {!hideEmptyRows && getDummyRows()}
       </tbody>
+
       {hideFooter ? null : (
         <TableFooter
           pages={tablePages}

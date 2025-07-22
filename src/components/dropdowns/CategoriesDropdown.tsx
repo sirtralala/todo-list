@@ -1,44 +1,65 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react"
-import { useIsOpen } from "../hooks/useIsOpen"
-import { TodoItem, DropdownItem, Status } from "../types"
-import { ChevronDownIcon, MinusIcon } from "../icons"
-import { Dispatch, SetStateAction, useRef } from "react"
+import { useIsOpen } from "../../hooks/useIsOpen"
+import { TodoItem, DropdownItem } from "../../types"
+import { ChevronDownIcon, MinusIcon } from "../../icons"
+import { Dispatch, JSX, SetStateAction, useRef } from "react"
 
-interface DropdownProps {
-  status: Status
-  setStatus?: Dispatch<SetStateAction<Status>>
+interface CategoriesDropdownProps {
+  setCategory?: Dispatch<SetStateAction<string>>
+  categories?: string[]
+  setCategories?: Dispatch<SetStateAction<string[]>>
+  uniqueCategories: string[]
+  setNotification: Dispatch<SetStateAction<JSX.Element | undefined>>
   item?: TodoItem
   editedItems?: TodoItem[]
   setEditedItems?: Dispatch<SetStateAction<TodoItem[]>>
   zIndex?: string
 }
 
-export const Dropdown = ({
-  status,
-  setStatus,
+export const CategoriesDropdown = ({
+  setCategory,
+  categories,
+  setCategories,
+  uniqueCategories,
+  setNotification,
   item,
   editedItems,
   setEditedItems,
   zIndex,
-}: DropdownProps) => {
+}: CategoriesDropdownProps) => {
   const dropdownNode = useRef(null)
   const { isOpen, open, close } = useIsOpen(dropdownNode)
 
-  const onDropdownItemClick = (newStatus: Status) => {
+  const onDropdownItemClick = (category: string) => {
+    const isCategoryAlreadySelected = (categories: string[]) => {
+      if (categories.find((u) => u.toLowerCase() === category.toLowerCase())) {
+        setNotification(<p>Diese Kategorie existiert bereits</p>)
+        close()
+        return true
+      }
+    }
     const onAddItem = () => {
-      if (setStatus) {
-        setStatus(newStatus)
+      if (categories && isCategoryAlreadySelected(categories)) {
+        return
+      }
+      if (setCategory && setCategories) {
+        setCategories((prev) => [...prev, category])
+        setCategory("")
       }
     }
 
     const onEditItem = () => {
-      if (!item || !setEditedItems) {
+      if (
+        !item ||
+        !setEditedItems ||
+        isCategoryAlreadySelected(item.categories)
+      ) {
         return
       }
 
       const newItem: TodoItem = {
         ...item,
-        status: newStatus,
+        categories: [...item.categories, category],
       }
 
       const editedItem = editedItems?.find((e) => e.id === item.id)
@@ -63,23 +84,13 @@ export const Dropdown = ({
     }
   }
 
-  const dropdownItems: DropdownItem[] = [
-    {
-      key: "dropdown-item-1",
-      content: <p>{Status.NEW}</p>,
-      onClick: () => onDropdownItemClick(Status.NEW),
-    },
-    {
-      key: "dropdown-item-2",
-      content: <p>{Status.IN_PROGRESS}</p>,
-      onClick: () => onDropdownItemClick(Status.IN_PROGRESS),
-    },
-    {
-      key: "dropdown-item-3",
-      content: <p>{Status.DONE}</p>,
-      onClick: () => onDropdownItemClick(Status.DONE),
-    },
-  ]
+  const dropdownItems: DropdownItem[] = uniqueCategories.map((unique) => {
+    return {
+      key: `unique-${unique}`,
+      content: <p>{unique}</p>,
+      onClick: () => onDropdownItemClick(unique),
+    }
+  })
 
   const renderDropdownItem = (item: DropdownItem) => (
     <button
@@ -95,14 +106,13 @@ export const Dropdown = ({
     <Menu>
       <div
         ref={dropdownNode}
-        className={`relative mt-1 ${zIndex ? zIndex : "z-80"}`}
+        className={`relative ${item ? "" : "mt-1 "}${zIndex ? zIndex : "z-80"}`}
       >
         <MenuButton
           type='button'
           className={`flex items-center cursor-pointer`}
           onClick={() => (isOpen ? close() : open())}
         >
-          {status}
           {isOpen ? (
             <MinusIcon className='h-5 w-5 ml-1' />
           ) : (
@@ -110,7 +120,7 @@ export const Dropdown = ({
           )}
         </MenuButton>
         <MenuItems
-          anchor='bottom'
+          anchor='bottom end'
           className={`w-fit min-w-24 pt-1 ${
             dropdownItems.length > 4
               ? "h-48 overflow-x-hidden overflow-y-auto"

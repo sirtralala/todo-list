@@ -9,5 +9,5 @@ export interface TodoItem {
   title: string
   categories: string[]
   status: Status
-  deadline: string
+  deadline: Date
 }

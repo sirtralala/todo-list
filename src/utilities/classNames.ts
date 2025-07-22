@@ -12,3 +12,8 @@ export const thClassName = "align-top px-4 py-2 font-medium text-left"
 export const trClassName = "h-16 align-top border-b-2 border-gray-100"
 
 export const tdClassName = "px-4 pt-3 text-left"
+
+export const getDayClassName = (date: Date, currentDate: Date | null) =>
+  currentDate && date.toDateString() === currentDate!.toDateString()
+    ? "selected_day"
+    : ""

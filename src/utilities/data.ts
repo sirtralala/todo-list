@@ -10,8 +10,9 @@ export const isInputValid = ({ item }: ValidInputProps): boolean => {
   }
 
   return (
-    item.title.length <= 96 &&
-    (item.categories.length < 8 || item.categories.length === 8) &&
+    item.title.length <= 120 &&
+    item.categories.length > 0 &&
+    item.categories.length <= 8 &&
     !item.categories.find((s) => s.trim().length > 96)
   )
 }

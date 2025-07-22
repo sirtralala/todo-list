@@ -7,37 +7,41 @@ import { JSX, useEffect, useState } from "react"
 import { DeleteTableItemsButton } from "../components/buttons/DeleteTableItemsButton"
 import { AddItemRow } from "../components/table/AddItemRow"
 import { TableRow } from "../components/table/TableRow"
-import { isInputValid } from "../utilities"
+import { isInputValid, notificationClassName } from "../utilities"
+import DatePicker, { registerLocale, setDefaultLocale } from "react-datepicker"
+import { de } from "date-fns/locale/de"
+import "react-datepicker/dist/react-datepicker.css"
+import { DateFilter } from "../components/table/DateFilter"
 
 export const Todos = () => {
   const maxWidth = "max-w-5xl"
 
-  const [editedItems, setEditedItems] = useState<TodoItem[]>([])
-  const [notification, setNotification] = useState<JSX.Element | undefined>(
-    undefined
-  )
-  const [userEnquiry, setUserEnquiry] = useState<JSX.Element | undefined>(
-    undefined
-  )
-
-  const [deleteItemIds, setDeleteItemIds] = useState<string[]>([])
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10)
-  const [currentPage, setCurrentPage] = useState<number>(1)
-  const [checkInput, setCheckInput] = useState<boolean>(false)
-  const [checkEdit, setCheckEdit] = useState<boolean>(false)
-
-  const [title, setTitle] = useState<string>("")
-  const [category, setCategory] = useState<string>("")
-  const [categories, setCategories] = useState<string[]>([])
-  const [status, setStatus] = useState<Status>(Status.NEW)
-  const [deadline, setDeadline] = useState<string>("")
+  registerLocale("de", de)
+  setDefaultLocale("de")
 
   const local = localStorage.getItem("items")
-  const data = local ? JSON.parse(local) : []
+  const data: TodoItem[] = local ? JSON.parse(local) : []
+  const uniqueCats = data
+    .flatMap((d) => d.categories)
+    .filter((cat, i, arr) => arr.indexOf(cat) === i)
 
   const [items, setItems] = useState<TodoItem[]>(data)
   // items displayed to the user after each local edit, BEFORE storing in localstorage
   const [filteredItems, setFilteredItems] = useState<TodoItem[]>(data)
+  // items edited by the user, available to be stored / reset
+  const [editedItems, setEditedItems] = useState<TodoItem[]>([])
+
+  const [title, setTitle] = useState<string>("")
+  const [category, setCategory] = useState<string>("")
+  const [categories, setCategories] = useState<string[]>([])
+  const [uniqueCategories, setUniqueCategories] = useState<string[]>(uniqueCats)
+  const [status, setStatus] = useState<Status>(Status.NEW)
+  const [deadline, setDeadline] = useState<Date | null>(new Date())
+
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10)
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [checkInput, setCheckInput] = useState<boolean>(false)
+  const [checkEdit, setCheckEdit] = useState<boolean>(false)
   const [sortType, setSortType] = useState<string>("asc")
 
   const { displayedItems, tablePages } = usePagination({
@@ -47,21 +51,12 @@ export const Todos = () => {
     sortType,
   })
 
-  // read items from localstorage
-  /* useEffect(() => {
-    const local = localStorage.getItem("items")
-    const data = local ? JSON.parse(local) : []
-
-    if (data && data.length) {
-      setItems(data)
-      setFilteredItems(data)
-      setRowsPerPage(data.length > 10 ? 10 : data.length)
-    } else {
-      setItems([])
-      setFilteredItems([])
-      setRowsPerPage(0)
-    }
-  }, []) */
+  const [notification, setNotification] = useState<JSX.Element | undefined>(
+    undefined
+  )
+  const [userEnquiry, setUserEnquiry] = useState<JSX.Element | undefined>(
+    undefined
+  )
 
   // validate user input for new item
   useEffect(() => {
@@ -71,23 +66,32 @@ export const Todos = () => {
 
     const inputErrors: JSX.Element[] = []
     if (!title.trim().length) {
-      inputErrors.push(<li key='error-spelling'>error-add-spelling</li>)
-    } else if (title.length > 96) {
       inputErrors.push(
-        <li key='error-spelling-length'>error-add-spelling-too-long</li>
+        <li key='error-add-title'>Bitte einen Namen eingeben</li>
+      )
+    } else if (title.length > 120) {
+      inputErrors.push(
+        <li key='error-add-title-length'>
+          Der Name darf maximal 120 Zeichen enthalten
+        </li>
       )
     }
-    if (!status.trim().length) {
-      inputErrors.push(<li key='error-status'>error-add-status</li>)
-    }
-    if (!deadline.trim().length) {
-      inputErrors.push(<li key='error-deadline'>error-add-deadline</li>)
+    if (deadline === null) {
+      inputErrors.push(
+        <li key='error-add-deadline'>Bitte die Deadline eingeben</li>
+      )
     }
     if (!categories.length) {
-      inputErrors.push(<li key='error-similar'>no-categories</li>)
-    } else if (categories.length >= 8) {
       inputErrors.push(
-        <li key='error-too-many-similars'>error-too-many-categories</li>
+        <li key='error-add-category'>
+          Bitte mindestens eine Kategorie eingeben
+        </li>
+      )
+    } else if (categories.length > 8) {
+      inputErrors.push(
+        <li key='error-add-too-many-categories'>
+          Maximal 8 Kategorien erlaubt
+        </li>
       )
     }
     if (inputErrors.length) {
@@ -118,10 +122,14 @@ export const Todos = () => {
 
     const editErrors: JSX.Element[] = []
     if (!invalidEditedItem.title.trim().length) {
-      editErrors.push(<li key='error-todo-title'>error-add-todo-title</li>)
+      editErrors.push(
+        <li key='error-edit-title'>Bitte einen Namen eingeben</li>
+      )
     } else if (invalidEditedItem.title.length > 120) {
       editErrors.push(
-        <li key='error-title-length'>error-add-title-too-long</li>
+        <li key='error-edit-title-length'>
+          Der Name darf maximal 120 Zeichen enthalten
+        </li>
       )
     }
 
@@ -134,61 +142,69 @@ export const Todos = () => {
     }
   }, [editedItems, checkEdit])
 
-  const onAddItem = (newItems: TodoItem[]) => {
+  const onAddItem = (newItem: TodoItem) => {
     const localItems = localStorage.getItem("items")
     const formerItems = localItems ? JSON.parse(localItems) : []
     let newData: TodoItem[]
 
     if (formerItems.length) {
-      newData = [...formerItems, ...newItems]
+      newData = [...formerItems, newItem]
     } else {
-      newData = [...newItems]
+      newData = [newItem]
     }
 
     localStorage.setItem("items", JSON.stringify(newData))
     setItems(newData)
     setFilteredItems(newData)
     setCategories([])
+    setUniqueCategories((prev) => [
+      ...prev,
+      ...newItem.categories.filter((cat) => !uniqueCategories.includes(cat)),
+    ])
     setStatus(Status.NEW)
-    setDeadline("")
+    setDeadline(new Date())
     setRowsPerPage(newData.length > 10 ? 10 : newData.length)
   }
 
   const onEditItem = () => {
-    const localItems = localStorage.getItem("items")
+    const localItems: string | null = localStorage.getItem("items")
     const formerItems: TodoItem[] = localItems ? JSON.parse(localItems) : []
+    const newItems: TodoItem[] = [...formerItems]
+
+    const editedCategories: string[] = []
     editedItems.forEach((edited) => {
       const i = formerItems.findIndex((f) => f.id === edited.id)
-      formerItems[i] = edited
+      newItems[i] = edited
+      editedCategories.push(...edited.categories)
     })
 
-    localStorage.setItem("items", JSON.stringify(formerItems))
-    setItems(formerItems)
-    setFilteredItems(formerItems)
+    const formerCategories = formerItems.flatMap((item) => item.categories)
+    const newCategories = newItems
+      .flatMap((n) => n.categories)
+      .filter((cat, i, arr) => arr.indexOf(cat) === i)
+    const newFilteredCategories = newCategories.filter((n) =>
+      formerCategories.find((f) => f !== n)
+    )
+    setUniqueCategories(newFilteredCategories)
+
+    localStorage.setItem("items", JSON.stringify(newItems))
+    setItems(newItems)
+    setFilteredItems(newItems)
     setEditedItems([])
   }
 
-  useEffect(() => {
-    if (deleteItemIds.length) {
-      const localItems = localStorage.getItem("items")
-      const formerItems: TodoItem[] = localItems ? JSON.parse(localItems) : []
-      const newData = formerItems.filter(
-        (item) => !deleteItemIds.includes(item.id)
-      )
-
-      localStorage.setItem("items", JSON.stringify(newData))
-      setItems(newData)
-      setFilteredItems(newData)
-      setDeleteItemIds([])
-      setNotification(undefined)
-    } /* else if (editedItems.length && !deleteItemIds.length) {
-      const i = formerItems.findIndex((f) => f.id === editedItems[0].id)
-      formerItems[i] = editedItems[0]
-      //onAddItem(editedItems)
-      localStorage.setItem("items", JSON.stringify(formerItems))
-      setEditedItems([])
-    } */
-  }, [deleteItemIds])
+  const onDeleteItems = (ids: string[]) => {
+    const localItems = localStorage.getItem("items")
+    const formerItems: TodoItem[] = localItems ? JSON.parse(localItems) : []
+    const newData = formerItems.filter((item) => !ids.includes(item.id))
+    localStorage.setItem("items", JSON.stringify(newData))
+    setItems(newData)
+    setFilteredItems(newData)
+    setUniqueCategories((prev) => [
+      ...prev.filter((p) => newData.find((n) => n.categories.includes(p))),
+    ])
+    setNotification(undefined)
+  }
 
   const onResetItem = (item: TodoItem) => {
     const originalItem = items.find((p) => p.id === item.id)
@@ -202,12 +218,6 @@ export const Todos = () => {
     )
     setEditedItems((prevItems) => prevItems.filter((p) => p.id !== item.id))
   }
-
-  const renderNotification = () =>
-    notification ? <div className='w-1/4 mt-14 pl-4'>{notification}</div> : null
-
-  const renderUserEnquiry = () =>
-    userEnquiry ? <div className='w-1/4 mt-14 pl-4'>{userEnquiry}</div> : null
 
   const onSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = e.target.value.toLowerCase()
@@ -234,10 +244,13 @@ export const Todos = () => {
             return type === "asc"
               ? a.status.localeCompare(b.status)
               : b.status.localeCompare(a.status)
-          case "Deadline":
+          case "Deadline": {
+            const dateA = new Date(a.deadline).toLocaleDateString()
+            const dateB = new Date(b.deadline).toLocaleDateString()
             return type === "asc"
-              ? a.deadline.localeCompare(b.deadline)
-              : b.deadline.localeCompare(a.deadline)
+              ? dateA.localeCompare(dateB)
+              : dateB.localeCompare(dateA)
+          }
           default:
             return -1
         }
@@ -250,10 +263,13 @@ export const Todos = () => {
     { title: "Status", className: "w-40" },
     {
       title: "Kategorien",
-      className: "flex grow",
+      className: "w-60",
     },
     { title: "Deadline", className: "w-40" },
-    { title: "Aktionen", className: "w-fit" },
+    {
+      title: "Aktionen",
+      className: "w-[210px]",
+    },
   ]
 
   const addItemRow = (
@@ -266,10 +282,22 @@ export const Todos = () => {
       setCategory={setCategory}
       categories={categories}
       setCategories={setCategories}
+      uniqueCategories={uniqueCategories}
+      setUniqueCategories={setUniqueCategories}
       status={status}
       setStatus={setStatus}
       deadline={deadline}
       setDeadline={setDeadline}
+      datePicker={
+        <DatePicker
+          selected={deadline}
+          onChange={(date) => setDeadline(date)}
+          customInput={
+            <input className='w-24 h-8 py-0 px-1 mr-2 border-none rounded-md' />
+          }
+          fixedHeight
+        />
+      }
       setCheckInput={setCheckInput}
       setNotification={setNotification}
       onAddItem={onAddItem}
@@ -281,6 +309,7 @@ export const Todos = () => {
       key={`item-element-${i}`}
       displayedItem={item}
       i={i + 1}
+      uniqueCategories={uniqueCategories}
       setFilteredItems={setFilteredItems}
       editedItems={editedItems}
       setEditedItems={setEditedItems}
@@ -288,7 +317,7 @@ export const Todos = () => {
       setNotification={setNotification}
       setUserEnquiry={setUserEnquiry}
       onEditItem={onEditItem}
-      onDeleteItem={setDeleteItemIds}
+      onDeleteItems={onDeleteItems}
       onResetItem={onResetItem}
     />
   ))
@@ -302,11 +331,11 @@ export const Todos = () => {
         <p className='px-1 py-0.5'>{s}</p>
         <button
           type='button'
-          title='delete'
+          title='Löschen'
           className='hover:text-gray-500'
-          onClick={() => {
+          onClick={() =>
             setCategories((prev) => prev.filter((prev) => prev !== s))
-          }}
+          }
         >
           <XMarkIcon strokeWidth='1.5' className='h-4 w-4' aria-hidden='true' />
         </button>
@@ -316,7 +345,7 @@ export const Todos = () => {
   if (categories.length) {
     tableBody.unshift(
       <tr key='categories-row'>
-        <td colSpan={4} className='h-fit pb-2 shadow-md'>
+        <td colSpan={5} className='h-fit pb-2 shadow-md'>
           <div key='categories-container' className='flex px-4 space-x-2'>
             {renderAddCategoryList()}
           </div>
@@ -330,21 +359,35 @@ export const Todos = () => {
   const renderDeleteTableItemsButton = () => (
     <DeleteTableItemsButton
       items={items}
-      setDeleteItemIds={setDeleteItemIds}
+      onDeleteItems={onDeleteItems}
       setNotification={setNotification}
       setUserEnquiry={setUserEnquiry}
     />
   )
 
+  const renderNotification = () =>
+    notification ? (
+      <div className='w-1/4 mt-14 pl-4'>
+        <div className={notificationClassName}>{notification}</div>
+      </div>
+    ) : null
+
+  const renderUserEnquiry = () =>
+    userEnquiry ? <div className='w-1/4 mt-14 pl-4'>{userEnquiry}</div> : null
+
   const renderTableArea = () => (
-    <div className={`w-full flex`}>
+    <div className='w-full flex'>
       <div className={`${maxWidth} grow`}>
         <div className='pt-4 px-4 pb-2 rounded-md shadow'>
           <div className='flex justify-between'>
             <TableSearchInput
               placeholder='Todos durchsuchen'
-              className='mb-4'
               onChange={onSearchInput}
+            />
+            <DateFilter
+              items={items}
+              setFilteredItems={setFilteredItems}
+              setNotification={setNotification}
             />
           </div>
           <Table
