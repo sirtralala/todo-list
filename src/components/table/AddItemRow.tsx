@@ -65,7 +65,7 @@ export const AddItemRow = ({
     const isCategoriesInput = cellType === TableCell.CATEGORY
 
     return (
-      <div className='h-8 flex justify-end'>
+      <div className='h-8 min-w-24 flex justify-end'>
         <input
           type='text'
           name='table-cell-add'
