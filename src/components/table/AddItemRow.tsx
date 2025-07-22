@@ -5,10 +5,11 @@ import {
   isInputValid,
   tdClassName,
 } from "../../utilities"
-import { Dispatch, JSX, SetStateAction } from "react"
+import { Dispatch, JSX, ReactElement, SetStateAction } from "react"
 import { TableCell } from "./TableCellEdit"
 import { PlusIcon } from "../../icons"
-import { Dropdown } from "../Dropdown"
+import { CategoriesDropdown, StatusDropdown } from "../dropdowns"
+import DatePicker from "react-datepicker"
 
 interface AddItemRowProps {
   items: TodoItem[]
@@ -16,15 +17,18 @@ interface AddItemRowProps {
   setTitle: Dispatch<SetStateAction<string>>
   category: string
   setCategory: Dispatch<SetStateAction<string>>
-  status: Status
-  setStatus: Dispatch<SetStateAction<Status>>
-  deadline: string
-  setDeadline: Dispatch<SetStateAction<string>>
   categories: string[]
   setCategories: Dispatch<SetStateAction<string[]>>
+  uniqueCategories: string[]
+  setUniqueCategories: Dispatch<SetStateAction<string[]>>
+  status: Status
+  setStatus: Dispatch<SetStateAction<Status>>
+  deadline: Date | null
+  setDeadline: Dispatch<SetStateAction<Date | null>>
+  datePicker: ReactElement<DatePicker>
   setCheckInput: Dispatch<SetStateAction<boolean>>
   setNotification: Dispatch<SetStateAction<JSX.Element | undefined>>
-  onAddItem: (item: TodoItem[]) => void
+  onAddItem: (item: TodoItem) => void
 }
 
 export const AddItemRow = ({
@@ -35,19 +39,22 @@ export const AddItemRow = ({
   setCategory,
   categories,
   setCategories,
+  uniqueCategories,
+  setUniqueCategories,
   status,
   setStatus,
   deadline,
   setDeadline,
+  datePicker,
   setCheckInput,
   setNotification,
   onAddItem,
 }: AddItemRowProps) => {
   const isNewItemADuplidate = (newItem: TodoItem) =>
     !!items.find(
-      (Item) =>
-        Item.title.toLowerCase() === newItem.title.toLowerCase() &&
-        areArraysEqual(Item.categories, newItem.categories)
+      (item) =>
+        item.title.toLowerCase() === newItem.title.toLowerCase() &&
+        areArraysEqual(item.categories, newItem.categories)
     )
 
   const renderTableCellInput = (
@@ -58,7 +65,7 @@ export const AddItemRow = ({
     const isCategoriesInput = cellType === TableCell.CATEGORY
 
     return (
-      <div className='flex justify-end h-8'>
+      <div className='h-8 flex justify-end'>
         <input
           type='text'
           name='table-cell-add'
@@ -73,13 +80,27 @@ export const AddItemRow = ({
             type='button'
             className='relative right-6 mr-0.5'
             onClick={() => {
-              if (category.trim().length) {
-                setCategories((prev) => [...prev, value])
-                setCategory("")
-                setNotification(undefined)
-              } else {
-                setNotification(<p>no-category</p>)
+              if (
+                uniqueCategories.find(
+                  (u) => u.toLowerCase() === category.toLowerCase()
+                )
+              ) {
+                setNotification(<p>Diese Kategorie existiert bereits</p>)
+                return
               }
+              if (!category.trim().length) {
+                setNotification(<p>Bitte die Kategorie benennen</p>)
+                return
+              }
+
+              setCategories((prev) => [...prev, value])
+              if (isCategoriesInput) {
+                setUniqueCategories((prev) =>
+                  prev.includes(value) ? prev : [...prev, value]
+                )
+              }
+              setCategory("")
+              setNotification(undefined)
             }}
           >
             <PlusIcon className='h-5 w-5 text-black stroke-[1.5] border border-black rounded-full hover:text-gray-500 hover:border-gray-500' />
@@ -91,7 +112,7 @@ export const AddItemRow = ({
 
   const renderAddButton = () => (
     <button
-      name='Hinzufügen'
+      type='button'
       className={buttonClassName}
       onClick={() => {
         const newItem: TodoItem = {
@@ -102,9 +123,11 @@ export const AddItemRow = ({
               ? [...categories, category]
               : categories?.length
               ? categories
-              : [category],
+              : category.length
+              ? [category]
+              : [],
           status,
-          deadline,
+          deadline: deadline!,
         }
         if (
           isInputValid({
@@ -113,15 +136,15 @@ export const AddItemRow = ({
         ) {
           setTitle("")
           setCategory("")
-          setDeadline("")
+          setDeadline(new Date())
           setStatus(Status.NEW)
           setCheckInput(false)
 
           if (isNewItemADuplidate(newItem)) {
-            setNotification(<p>error-new-item-exists-already</p>)
+            setNotification(<p>Dieses Todo existiert bereits</p>)
           } else {
             setNotification(undefined)
-            onAddItem([newItem])
+            onAddItem(newItem)
           }
         } else {
           setCheckInput(true)
@@ -145,19 +168,21 @@ export const AddItemRow = ({
         {renderTableCellInput(TableCell.TITLE, title, setTitle)}
       </td>
       <td className={tdClassName}>
-        {/* <MultiSelectDropdown
-          currentCategories={categories}
-          setCategories={setCategories}
-          zIndex='z-2000'
-        /> */}
-        <Dropdown status={status} setStatus={setStatus} />
+        <StatusDropdown status={status} setStatus={setStatus} />
       </td>
-      <td className={tdClassName}>
+      <td className={`flex ${tdClassName}`}>
         {renderTableCellInput(TableCell.CATEGORY, category, setCategory)}
+        {uniqueCategories.length ? (
+          <CategoriesDropdown
+            setCategory={setCategory}
+            categories={categories}
+            setCategories={setCategories}
+            uniqueCategories={uniqueCategories}
+            setNotification={setNotification}
+          />
+        ) : null}
       </td>
-      <td className={tdClassName}>
-        {renderTableCellInput(TableCell.DEADLINE, deadline, setDeadline)}
-      </td>
+      <td className={tdClassName}>{datePicker}</td>
       <td className={`${tdClassName} w-full flex justify-between`}>
         <div className='w-full flex justify-between h-8'>
           {renderAddButton()}

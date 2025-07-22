@@ -13,21 +13,24 @@ export interface DeleteItemNotificationProps {
 export const DeleteItemNotification = ({
   onClick,
   setUserEnquiry,
-}: DeleteItemNotificationProps) => {
-  return (
-    <div className={notificationClassName}>
-      <p>Möchtest du diesen Eintrag wirklich löschen?</p>
-      <div className='flex justify-end space-x-2 mt-4'>
-        <button
-          className={buttonClassName}
-          onClick={() => setUserEnquiry(undefined)}
-        >
-          Abbrechen
-        </button>
-        <button className={buttonClassNamePrimary} onClick={onClick}>
-          Löschen
-        </button>
-      </div>
+}: DeleteItemNotificationProps) => (
+  <div className={notificationClassName}>
+    <p>Möchtest du diesen Eintrag wirklich löschen?</p>
+    <div className='flex justify-end space-x-2 mt-4'>
+      <button
+        type='button'
+        className={buttonClassName}
+        onClick={() => setUserEnquiry(undefined)}
+      >
+        Abbrechen
+      </button>
+      <button
+        type='button'
+        className={buttonClassNamePrimary}
+        onClick={onClick}
+      >
+        Löschen
+      </button>
     </div>
-  )
-}
+  </div>
+)

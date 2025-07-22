@@ -1,0 +1,12 @@
+/* datePicker styles */
+
+.selected_day {
+  color: #fff;
+  background-color: oklch(50.5% 0.213 27.518);
+}
+
+.selected_day:not(.selected_day--disabled):hover {
+  color: #fff;
+  background-color: oklch(50.5% 0.213 27.518);
+  opacity: 70%;
+}

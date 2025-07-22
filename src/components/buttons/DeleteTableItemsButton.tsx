@@ -5,7 +5,7 @@ import { buttonClassName } from "../../utilities"
 
 interface DeleteTableItemsButtonProps {
   items: TodoItem[]
-  setDeleteItemIds: React.Dispatch<React.SetStateAction<string[]>>
+  onDeleteItems: (ids: string[]) => void
   setNotification: (
     value: React.SetStateAction<JSX.Element | undefined>
   ) => void
@@ -14,12 +14,11 @@ interface DeleteTableItemsButtonProps {
 
 export const DeleteTableItemsButton = ({
   items,
-  setDeleteItemIds,
+  onDeleteItems,
   setNotification,
   setUserEnquiry,
 }: DeleteTableItemsButtonProps) => (
   <button
-    name='delete-list'
     className={buttonClassName}
     onClick={() => {
       setNotification(undefined)
@@ -27,7 +26,7 @@ export const DeleteTableItemsButton = ({
         setUserEnquiry(
           <DeleteAllItemsNotification
             items={items}
-            setDeleteItemIds={setDeleteItemIds}
+            onDeleteItems={onDeleteItems}
             setUserEnquiry={setUserEnquiry}
           />
         )

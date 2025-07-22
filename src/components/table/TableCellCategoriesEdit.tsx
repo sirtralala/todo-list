@@ -56,6 +56,7 @@ const onTableCellInput = (
       return p
     })
   )
+
   setNotification(undefined)
 }
 
@@ -83,6 +84,7 @@ export const TableCellCategoriesEdit = ({
     editedItem?.categories?.find((_c, i) => i === categoriesIndex) ||
     displayedItem.categories?.find((_c, i) => i === categoriesIndex) ||
     ""
+
   return (
     <input
       type='text'
