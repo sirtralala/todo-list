@@ -9,6 +9,7 @@ import { AddItemRow } from "../components/table/AddItemRow"
 import { TableRow } from "../components/table/TableRow"
 import {
   enquiryContainerClassName,
+  getDayClassName,
   isInputValid,
   notificationClassName,
 } from "../utilities"
@@ -299,6 +300,7 @@ export const Todos = () => {
           customInput={
             <input className='w-24 h-8 py-0 px-1 mr-2 border-none rounded-md' />
           }
+          dayClassName={(date) => getDayClassName(date, new Date(deadline!))}
           fixedHeight
         />
       }
@@ -382,7 +384,7 @@ export const Todos = () => {
     ) : null
 
   const renderTableArea = () => (
-    <div className='w-full flex flex-col-reverse lg:flex-row'>
+    <div className='w-full flex flex-col-reverse lg:flex-row select-none'>
       <div className={maxWidth}>
         <div className='pt-4 px-4 pb-2 rounded-md lg:shadow'>
           <div className='flex justify-between'>
