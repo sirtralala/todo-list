@@ -1,5 +1,8 @@
 # React + TypeScript + Vite
 
+A to-do list with configurable categories, statuses, and deadlines. Created categories are added to a dropdown menu for future selection and can be edited directly inline. The to-dos are displayed in a table with pagination and can be searched and filtered by wording and deadline. The data is stored in the browser's local storage.
+
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
